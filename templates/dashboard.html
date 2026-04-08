@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS User Portal — Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">☁️ AWS User Portal</div>
+        <div class="nav-links">
+            <span>Welcome, <strong>{{ current_user.username }}</strong> 
+            ({{ current_user.role }})</span>
+            <a href="{{ url_for('add_user') }}" class="btn btn-small">+ Add User</a>
+            <a href="{{ url_for('reset_password') }}" class="btn btn-small btn-warning">Reset Password</a>
+            <a href="{{ url_for('logout') }}" class="btn btn-small btn-danger">Logout</a>
+        </div>
+    </nav>
+
+    <div class="main">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        <h2>All Users</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user[0] }}</td>
+                    <td>{{ user[1] }}</td>
+                    <td><span class="badge badge-{{ user[2] }}">{{ user[2] }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

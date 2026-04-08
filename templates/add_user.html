@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS User Portal — Add User</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">☁️ AWS User Portal</div>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-small">← Dashboard</a>
+            <a href="{{ url_for('logout') }}" class="btn btn-small btn-danger">Logout</a>
+        </div>
+    </nav>
+
+    <div class="main">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        <div class="card-inner">
+            <h2>Add New User</h2>
+            <p class="subtitle">New user will be saved to the database immediately.</p>
+
+            <form method="POST">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" name="username" placeholder="Enter username" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" name="password" placeholder="Enter password" required>
+                </div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <select name="role">
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Add User →</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
