@@ -3,6 +3,7 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 import os
+import socket
 
 # ── App Setup ──────────────────────────────────────────────
 app = Flask(__name__)
@@ -69,7 +70,15 @@ def login():
             login_user(user)
             return redirect(url_for('dashboard'))
         flash('Invalid username or password', 'error')
-    return render_template('login.html')
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        server_ip = s.getsockname()[0]
+    except Exception:
+        server_ip = '127.0.0.1'
+    finally:
+        s.close()
+    return render_template('login.html', server_ip=server_ip)
 
 @app.route('/dashboard')
 @login_required
