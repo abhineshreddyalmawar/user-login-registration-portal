@@ -5,6 +5,16 @@ import sqlite3
 import os
 import socket
 
+def get_instance_ip():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return 'unknown'
+
 # ── App Setup ──────────────────────────────────────────────
 app = Flask(__name__)
 app.secret_key = 'aws-portal-secret-2026'
@@ -70,15 +80,7 @@ def login():
             login_user(user)
             return redirect(url_for('dashboard'))
         flash('Invalid username or password', 'error')
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(('8.8.8.8', 80))
-        server_ip = s.getsockname()[0]
-    except Exception:
-        server_ip = '127.0.0.1'
-    finally:
-        s.close()
-    return render_template('login.html', server_ip=server_ip)
+    return render_template('login.html', instance_ip=get_instance_ip())
 
 @app.route('/dashboard')
 @login_required
@@ -88,7 +90,7 @@ def dashboard():
     c.execute("SELECT id, username, role FROM users")
     users = c.fetchall()
     conn.close()
-    return render_template('dashboard.html', users=users)
+    return render_template('dashboard.html', users=users, instance_ip=get_instance_ip())
 
 @app.route('/add-user', methods=['GET', 'POST'])
 @login_required
