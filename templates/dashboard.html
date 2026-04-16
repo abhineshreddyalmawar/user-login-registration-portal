@@ -45,6 +45,60 @@
                 {% endfor %}
             </tbody>
         </table>
+        <!-- GitHub Repos Section -->
+        <div class="github-section">
+            <h2>&#128027; My GitHub Repos</h2>
+            <div class="github-search">
+                <input type="text" id="github-username" placeholder="Enter GitHub username" />
+                <button class="btn btn-primary" onclick="fetchRepos()">Fetch Repos</button>
+            </div>
+            <div id="github-status"></div>
+            <div id="github-repos-grid" class="repos-grid"></div>
+        </div>
     </div>
+
+    <script>
+        function fetchRepos() {
+            const username = document.getElementById('github-username').value.trim();
+            const status   = document.getElementById('github-status');
+            const grid     = document.getElementById('github-repos-grid');
+
+            if (!username) {
+                status.innerHTML = '<p style="color:red;">Please enter a GitHub username.</p>';
+                return;
+            }
+
+            status.innerHTML = '<p style="color:#666;">Fetching repos via GitHub MCP server...</p>';
+            grid.innerHTML   = '';
+
+            fetch(`/github-repos?username=${encodeURIComponent(username)}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error) {
+                        status.innerHTML = `<p style="color:red;">Error: ${data.error}</p>`;
+                        return;
+                    }
+                    status.innerHTML = `<p style="color:green;">Found ${data.repos.length} repos for <strong>${username}</strong></p>`;
+                    grid.innerHTML = data.repos.map(repo => `
+                        <div class="repo-card">
+                            <a href="${repo.url}" target="_blank" class="repo-name">${repo.name}</a>
+                            <p class="repo-desc">${repo.description}</p>
+                            <div class="repo-meta">
+                                <span>&#11088; ${repo.stars}</span>
+                                <span>&#128290; ${repo.language}</span>
+                                <span>&#128197; ${repo.updated_at}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                })
+                .catch(err => {
+                    status.innerHTML = `<p style="color:red;">Failed to fetch: ${err}</p>`;
+                });
+        }
+
+        document.getElementById('github-username').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') fetchRepos();
+        });
+    </script>
 </body>
 </html>

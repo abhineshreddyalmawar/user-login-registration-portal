@@ -224,3 +224,80 @@ tr:hover td { background: #1f2f40; }
     border: 1px solid #c0392b;
     color: #e74c3c;
 }
+
+/* ── GitHub Repos Section ────────────────────────────────── */
+.github-section {
+    margin-top: 40px;
+}
+
+.github-section h2 {
+    margin-bottom: 16px;
+    color: #ff9900;
+}
+
+.github-search {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.github-search input {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: 1px solid #2a3f55;
+    background: #1a2a3a;
+    color: #e0e0e0;
+    font-size: 0.95rem;
+}
+
+.github-search input:focus {
+    outline: none;
+    border-color: #ff9900;
+}
+
+.repos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 10px;
+}
+
+.repo-card {
+    background: #1a2a3a;
+    border: 1px solid #2a3f55;
+    border-radius: 8px;
+    padding: 16px;
+    transition: border-color 0.2s;
+}
+
+.repo-card:hover {
+    border-color: #ff9900;
+}
+
+.repo-name {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #ff9900;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.repo-name:hover {
+    text-decoration: underline;
+}
+
+.repo-desc {
+    font-size: 0.85rem;
+    color: #a0b0c0;
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+.repo-meta {
+    display: flex;
+    gap: 16px;
+    font-size: 0.82rem;
+    color: #7a9ab0;
+}

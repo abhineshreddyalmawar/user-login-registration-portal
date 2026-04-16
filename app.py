@@ -1,9 +1,16 @@
-from flask import Flask, render_template, redirect, url_for, request, flash
+from flask import Flask, render_template, redirect, url_for, request, flash, jsonify
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from dotenv import load_dotenv
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
 import sqlite3
 import os
 import socket
+import asyncio
+import json
+
+load_dotenv()
 
 def get_instance_ip():
     try:
@@ -137,6 +144,61 @@ def reset_password():
 def logout():
     logout_user()
     return redirect(url_for('login'))
+
+# ── GitHub MCP ─────────────────────────────────────────────
+
+async def fetch_github_repos(username):
+    token = os.environ.get('GITHUB_PERSONAL_ACCESS_TOKEN', '')
+    # On Windows, npx is npx.cmd — subprocess needs the full extension
+    npx_cmd = 'npx.cmd' if os.name == 'nt' else 'npx'
+    server_params = StdioServerParameters(
+        command=npx_cmd,
+        args=['-y', '@modelcontextprotocol/server-github'],
+        env={**os.environ, 'GITHUB_PERSONAL_ACCESS_TOKEN': token}
+    )
+    async with stdio_client(server_params) as (read, write):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            result = await session.call_tool(
+                'search_repositories',
+                {'query': f'user:{username}', 'per_page': 10}
+            )
+            raw = result.content[0].text
+            data = json.loads(raw)
+            repos = data.get('items', data) if isinstance(data, dict) else data
+            repos = sorted(repos, key=lambda r: r.get('updated_at', ''), reverse=True)
+            return [
+                {
+                    'name':        r.get('name', ''),
+                    'description': r.get('description') or 'No description',
+                    'stars':       r.get('stargazers_count', 0),
+                    'language':    r.get('language') or 'N/A',
+                    'url':         r.get('html_url', ''),
+                    'updated_at':  r.get('updated_at', '')[:10],
+                }
+                for r in repos
+            ]
+
+@app.route('/github-repos')
+@login_required
+def github_repos():
+    username = request.args.get('username', '').strip()
+    if not username:
+        return jsonify({'error': 'GitHub username is required'}), 400
+    try:
+        loop = asyncio.ProactorEventLoop()
+        try:
+            repos = loop.run_until_complete(fetch_github_repos(username))
+        finally:
+            loop.close()
+        return jsonify({'repos': repos})
+    except BaseException as e:
+        # Unwrap asyncio ExceptionGroup to get the real error
+        if hasattr(e, 'exceptions') and e.exceptions:
+            msg = str(e.exceptions[0])
+        else:
+            msg = str(e.__cause__ or e)
+        return jsonify({'error': msg}), 500
 
 # ── Run ────────────────────────────────────────────────────
 if __name__ == '__main__':
