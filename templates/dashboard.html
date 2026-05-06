@@ -3,55 +3,706 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AWS User Portal — Dashboard</title>
+    <title>NexusAI Portal — Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        :root {
+            --bg: #04080f;
+            --surface: #080f1a;
+            --surface2: #0d1825;
+            --surface3: #111f2e;
+            --border: rgba(255,255,255,0.06);
+            --accent: #00c896;
+            --accent2: #0088ff;
+            --accent3: #7c3aed;
+            --text: #e8f0f8;
+            --muted: #4a6070;
+            --label: #7a9ab0;
+            --danger: #ff4455;
+            --warning: #ffbd2e;
+            --success: #00c896;
+            --font-display: 'Syne', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-mono);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Animated grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0,200,150,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,200,150,0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        /* ── NAVBAR ── */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 28px;
+            height: 56px;
+            background: rgba(4,8,15,0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-brand-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 7px;
+            background: linear-gradient(135deg, rgba(0,200,150,0.2), rgba(0,136,255,0.2));
+            border: 1px solid rgba(0,200,150,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .nav-brand-text {
+            background: linear-gradient(135deg, var(--text) 30%, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-ip {
+            font-size: 10px;
+            color: var(--muted);
+            font-family: var(--font-mono);
+            font-weight: 400;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 12px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--label);
+        }
+
+        .nav-user strong {
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .nav-user-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: pulse 2s ease infinite;
+        }
+
+        .nav-btn {
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+            letter-spacing: 0.03em;
+        }
+
+        .nav-btn:hover { transform: translateY(-1px); }
+
+        .nav-btn-default {
+            background: var(--surface2);
+            color: var(--label);
+        }
+
+        .nav-btn-default:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .nav-btn-warning {
+            background: rgba(255,189,46,0.1);
+            border-color: rgba(255,189,46,0.2);
+            color: var(--warning);
+        }
+
+        .nav-btn-warning:hover {
+            background: rgba(255,189,46,0.15);
+        }
+
+        .nav-btn-danger {
+            background: rgba(255,68,85,0.1);
+            border-color: rgba(255,68,85,0.2);
+            color: var(--danger);
+        }
+
+        .nav-btn-danger:hover {
+            background: rgba(255,68,85,0.15);
+        }
+
+        /* ── MAIN CONTENT ── */
+        .main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 28px 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── ALERTS ── */
+        .alert {
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: fadeUp 0.4s ease both;
+        }
+
+        .alert-success {
+            background: rgba(0,200,150,0.08);
+            border: 1px solid rgba(0,200,150,0.2);
+            color: var(--success);
+        }
+
+        .alert-error {
+            background: rgba(255,68,85,0.08);
+            border: 1px solid rgba(255,68,85,0.2);
+            color: var(--danger);
+        }
+
+        /* ── STATS BAR ── */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 28px;
+            animation: fadeUp 0.4s ease both;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px 20px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+
+        .stat-card:hover {
+            border-color: rgba(0,200,150,0.2);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .stat-card:hover::before { opacity: 1; }
+
+        .stat-label {
+            font-size: 10px;
+            color: var(--muted);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stat-value {
+            font-family: var(--font-display);
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--text), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-sub {
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        .stat-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 28px;
+            opacity: 0.08;
+        }
+
+        /* ── SECTION HEADER ── */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.01em;
+        }
+
+        .section-badge {
+            padding: 2px 8px;
+            background: rgba(0,200,150,0.1);
+            border: 1px solid rgba(0,200,150,0.2);
+            border-radius: 10px;
+            font-size: 10px;
+            color: var(--accent);
+            letter-spacing: 0.05em;
+        }
+
+        .section-line {
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* ── USERS TABLE ── */
+        .table-wrapper {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 32px;
+            animation: fadeUp 0.5s ease both;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: var(--surface2);
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            padding: 12px 18px;
+            text-align: left;
+            font-size: 10px;
+            color: var(--muted);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        td {
+            padding: 13px 18px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border);
+            color: var(--label);
+        }
+
+        tr:last-child td { border-bottom: none; }
+
+        tr:hover td {
+            background: rgba(0,200,150,0.02);
+            color: var(--text);
+        }
+
+        .badge {
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .badge-admin {
+            background: rgba(0,200,150,0.12);
+            border: 1px solid rgba(0,200,150,0.25);
+            color: var(--accent);
+        }
+
+        .badge-user {
+            background: rgba(122,154,176,0.1);
+            border: 1px solid rgba(122,154,176,0.2);
+            color: var(--label);
+        }
+
+        /* ── GITHUB SECTION ── */
+        .github-section {
+            animation: fadeUp 0.6s ease both;
+        }
+
+        .github-search {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-prefix {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            color: var(--accent);
+        }
+
+        .github-search input {
+            width: 100%;
+            padding: 11px 14px 11px 32px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: var(--font-mono);
+            font-size: 13px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .github-search input:focus {
+            border-color: var(--accent);
+            background: rgba(0,200,150,0.02);
+            box-shadow: 0 0 0 3px rgba(0,200,150,0.06);
+        }
+
+        .btn-fetch {
+            padding: 11px 20px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border: none;
+            border-radius: 8px;
+            color: #04080f;
+            font-family: var(--font-display);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            letter-spacing: 0.03em;
+        }
+
+        .btn-fetch:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0,200,150,0.25);
+        }
+
+        /* ── STATUS TEXT ── */
+        #github-status {
+            font-size: 12px;
+            margin-bottom: 14px;
+            min-height: 20px;
+        }
+
+        .status-loading {
+            color: var(--label);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-success {
+            color: var(--accent);
+        }
+
+        .status-error {
+            color: var(--danger);
+        }
+
+        /* ── REPOS GRID ── */
+        .repos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 14px;
+        }
+
+        .repo-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px;
+            transition: all 0.2s;
+            position: relative;
+            overflow: visible;
+        }
+
+        .repo-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .repo-card:hover {
+            border-color: rgba(0,200,150,0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+
+        .repo-card:hover::before { opacity: 1; }
+
+        .repo-name {
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent);
+            text-decoration: none;
+            display: block;
+            margin-bottom: 8px;
+            letter-spacing: -0.01em;
+        }
+
+        .repo-name:hover { text-decoration: underline; }
+
+        .repo-desc {
+            font-size: 12px;
+            color: var(--label);
+            margin-bottom: 14px;
+            line-height: 1.6;
+            min-height: 36px;
+        }
+
+        .repo-meta {
+            display: flex;
+            gap: 14px;
+            font-size: 11px;
+            color: var(--muted);
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .repo-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-analyze {
+            width: 100%;
+            margin-top: 12px;
+            padding: 8px;
+            background: rgba(124,58,237,0.1);
+            border: 1px solid rgba(124,58,237,0.2);
+            border-radius: 6px;
+            color: #a78bfa;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-analyze:hover {
+            background: rgba(124,58,237,0.15);
+            border-color: rgba(124,58,237,0.35);
+            transform: translateY(-1px);
+        }
+
+        /* ── LOADING DOTS ── */
+        .loading-dots {
+            display: inline-flex;
+            gap: 4px;
+        }
+
+        .loading-dots span {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: pulse 1s ease infinite;
+        }
+
+        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+    </style>
 </head>
 <body>
+
+    <!-- NAVBAR -->
     <nav class="navbar">
-        <div class="nav-brand">☁️ AWS User Portal &nbsp;<span style="font-size:0.75rem; color:#8a9bb0;">| {{ instance_ip }}</span></div>
+        <div class="nav-brand">
+            <div class="nav-brand-icon">⚡</div>
+            <span class="nav-brand-text">NexusAI Portal</span>
+            <span class="nav-ip">// {{ instance_ip }}</span>
+        </div>
         <div class="nav-links">
-            <span>Welcome, <strong>{{ current_user.username }}</strong> 
-            ({{ current_user.role }})</span>
-            <a href="{{ url_for('add_user') }}" class="btn btn-small">+ Add User</a>
-            <a href="{{ url_for('reset_password') }}" class="btn btn-small btn-warning">Reset Password</a>
-            <a href="{{ url_for('logout') }}" class="btn btn-small btn-danger">Logout</a>
+            <div class="nav-user">
+                <div class="nav-user-dot"></div>
+                Welcome, <strong>{{ current_user.username }}</strong>
+                &nbsp;·&nbsp; {{ current_user.role }}
+            </div>
+            <a href="{{ url_for('add_user') }}" class="nav-btn nav-btn-default">+ Add User</a>
+            <a href="{{ url_for('reset_password') }}" class="nav-btn nav-btn-warning">Reset PWD</a>
+            <a href="{{ url_for('logout') }}" class="nav-btn nav-btn-danger">Logout</a>
         </div>
     </nav>
 
     <div class="main">
 
+        <!-- ALERTS -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">{{ message }}</div>
+                <div class="alert alert-{{ category }}">
+                    <span>{{ '✓' if category == 'success' else '✗' }}</span>
+                    {{ message }}
+                </div>
             {% endfor %}
         {% endwith %}
 
-        <h2>All Users</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Username</th>
-                    <th>Role</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in users %}
-                <tr>
-                    <td>{{ user[0] }}</td>
-                    <td>{{ user[1] }}</td>
-                    <td><span class="badge badge-{{ user[2] }}">{{ user[2] }}</span></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <!-- GitHub Repos Section -->
-        <div class="github-section">
-            <h2>&#128027; My GitHub Repos</h2>
-            <div class="github-search">
-                <input type="text" id="github-username" placeholder="Enter GitHub username" />
-                <button class="btn btn-primary" onclick="fetchRepos()">Fetch Repos</button>
+        <!-- STATS BAR -->
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-label">👥 Total Users</div>
+                <div class="stat-value">{{ users|length }}</div>
+                <div class="stat-sub">registered accounts</div>
+                <div class="stat-icon">👥</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-label">⚡ System Status</div>
+                <div class="stat-value" style="font-size:18px; padding-top:4px;">ONLINE</div>
+                <div class="stat-sub">all systems operational</div>
+                <div class="stat-icon">⚡</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">🤖 AI Engine</div>
+                <div class="stat-value" style="font-size:18px; padding-top:4px;">Claude</div>
+                <div class="stat-sub">powered by Anthropic</div>
+                <div class="stat-icon">🤖</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">📦 Repos Loaded</div>
+                <div class="stat-value" id="repo-count">0</div>
+                <div class="stat-sub">github repositories</div>
+                <div class="stat-icon">📦</div>
+            </div>
+        </div>
+
+        <!-- USERS TABLE -->
+        <div class="section-header">
+            <div class="section-title">System Users</div>
+            <div class="section-badge">LIVE</div>
+            <div class="section-line"></div>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user[0] }}</td>
+                        <td>{{ user[1] }}</td>
+                        <td><span class="badge badge-{{ user[2] }}">{{ user[2] }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GITHUB REPOS -->
+        <div class="github-section">
+            <div class="section-header">
+                <div class="section-title">🐙 GitHub Repositories</div>
+                <div class="section-badge">MCP POWERED</div>
+                <div class="section-line"></div>
+            </div>
+
+            <div class="github-search">
+                <div class="search-wrapper">
+                    <span class="search-prefix">@</span>
+                    <input type="text"
+                           id="github-username"
+                           placeholder="github_username"
+                           value="{{ current_user.username }}" />
+                </div>
+                <button class="btn-fetch" onclick="fetchRepos()">
+                    Fetch Repos →
+                </button>
+            </div>
+
             <div id="github-status"></div>
             <div id="github-repos-grid" class="repos-grid"></div>
         </div>
@@ -62,43 +713,217 @@
             const username = document.getElementById('github-username').value.trim();
             const status   = document.getElementById('github-status');
             const grid     = document.getElementById('github-repos-grid');
+            const counter  = document.getElementById('repo-count');
 
             if (!username) {
-                status.innerHTML = '<p style="color:red;">Please enter a GitHub username.</p>';
+                status.innerHTML = '<p class="status-error">✗ Please enter a GitHub username.</p>';
                 return;
             }
 
-            status.innerHTML = '<p style="color:#666;">Fetching repos via GitHub MCP server...</p>';
-            grid.innerHTML   = '';
+            status.innerHTML = `<div class="status-loading">
+                <div class="loading-dots">
+                    <span></span><span></span><span></span>
+                </div>
+                Fetching repos for @${username}
+            </div>`;
+            grid.innerHTML = '';
+            counter.textContent = '...';
 
             fetch(`/github-repos?username=${encodeURIComponent(username)}`)
                 .then(r => r.json())
                 .then(data => {
                     if (data.error) {
-                        status.innerHTML = `<p style="color:red;">Error: ${data.error}</p>`;
+                        status.innerHTML = `<p class="status-error">✗ ${data.error}</p>`;
+                        counter.textContent = '0';
                         return;
                     }
-                    status.innerHTML = `<p style="color:green;">Found ${data.repos.length} repos for <strong>${username}</strong></p>`;
+                    counter.textContent = data.repos.length;
+                    status.innerHTML = `<p class="status-success">
+                        ✓ Found ${data.repos.length} repos for <strong>@${username}</strong>
+                    </p>`;
                     grid.innerHTML = data.repos.map(repo => `
                         <div class="repo-card">
-                            <a href="${repo.url}" target="_blank" class="repo-name">${repo.name}</a>
-                            <p class="repo-desc">${repo.description}</p>
+                            <a href="${repo.url}" target="_blank" class="repo-name">
+                                ${repo.name}
+                            </a>
+                            <p class="repo-desc">${repo.description || 'No description available'}</p>
                             <div class="repo-meta">
-                                <span>&#11088; ${repo.stars}</span>
-                                <span>&#128290; ${repo.language}</span>
-                                <span>&#128197; ${repo.updated_at}</span>
+                                <span>⭐ ${repo.stars}</span>
+                                <span>◎ ${repo.language || 'N/A'}</span>
+                                <span>📅 ${repo.updated_at}</span>
                             </div>
+                            <button class="btn-analyze"
+                                data-name="${repo.name}"
+                                data-desc="${(repo.description || '').replace(/['"]/g, ' ')}"
+                                data-lang="${repo.language || ''}"
+                                onclick="analyzeRepo(this.dataset.name, this.dataset.desc, this.dataset.lang)">
+                                🤖 Analyze with Claude AI →
+                            </button>
                         </div>
                     `).join('');
                 })
                 .catch(err => {
-                    status.innerHTML = `<p style="color:red;">Failed to fetch: ${err}</p>`;
+                    status.innerHTML = `<p class="status-error">✗ Failed: ${err}</p>`;
+                    counter.textContent = '0';
                 });
         }
+
+        function analyzeRepo(repoName, description, language) {
+    const cardId = 'analysis-' + repoName.replace(/[^a-zA-Z0-9]/g, '-');
+    const existing = document.getElementById(cardId);
+    
+    // Toggle off if already open
+    if (existing) {
+        existing.remove();
+        return;
+    }
+
+    // Find the repo card
+    const cards = document.querySelectorAll('.repo-card');
+    let targetCard = null;
+    cards.forEach(card => {
+        if (card.querySelector('.repo-name').textContent.trim() === repoName) {
+            targetCard = card;
+        }
+    });
+
+    if (!targetCard) return;
+
+    // Add loading panel
+    const loadingPanel = document.createElement('div');
+    loadingPanel.id = cardId;
+    loadingPanel.innerHTML = `
+        <div style="
+            margin-top: 12px;
+            padding: 14px;
+            background: rgba(124,58,237,0.05);
+            border: 1px solid rgba(124,58,237,0.2);
+            border-radius: 8px;
+            font-size: 12px;
+            color: #a78bfa;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        ">
+            <div class="loading-dots">
+                <span></span><span></span><span></span>
+            </div>
+            Claude is analyzing ${repoName}...
+        </div>
+    `;
+    targetCard.appendChild(loadingPanel);
+
+    // Call backend
+    fetch(`/analyze-repo?name=${encodeURIComponent(repoName)}&description=${encodeURIComponent(description)}&language=${encodeURIComponent(language)}`)
+        .then(r => r.json())
+        .then(data => {
+            const stars = '★'.repeat(Math.round(data.rating)) + 
+                         '☆'.repeat(10 - Math.round(data.rating));
+            
+            loadingPanel.innerHTML = `
+                <div style="
+                    margin-top: 12px;
+                    padding: 16px;
+                    background: rgba(124,58,237,0.05);
+                    border: 1px solid rgba(124,58,237,0.25);
+                    border-radius: 8px;
+                    font-size: 12px;
+                ">
+                    <!-- Header -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <span style="color:#a78bfa; font-weight:600; font-size:11px; letter-spacing:0.08em;">
+                            🤖 CLAUDE AI ANALYSIS
+                        </span>
+                        <span style="
+                            padding: 2px 8px;
+                            background: rgba(124,58,237,0.15);
+                            border: 1px solid rgba(124,58,237,0.3);
+                            border-radius: 10px;
+                            font-size: 10px;
+                            color: #a78bfa;
+                        ">${data.category}</span>
+                    </div>
+
+                    <!-- Rating -->
+                    <div style="margin-bottom:12px;">
+                        <div style="color:#7a9ab0; font-size:10px; letter-spacing:0.08em; margin-bottom:4px;">RATING</div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="color:#ffbd2e; font-size:13px; letter-spacing:2px;">
+                                ${'★'.repeat(Math.round(data.rating))}${'☆'.repeat(10 - Math.round(data.rating))}
+                            </span>
+                            <span style="color:#e8f0f8; font-weight:600;">${data.rating}/10</span>
+                            <span style="color:#7a9ab0; font-size:10px;">${data.rating_label}</span>
+                        </div>
+                    </div>
+
+                    <!-- Tech Stack -->
+                    <div style="margin-bottom:12px;">
+                        <div style="color:#7a9ab0; font-size:10px; letter-spacing:0.08em; margin-bottom:6px;">TECH STACK</div>
+                        <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                            ${data.tech_stack.map(tech => `
+                                <span style="
+                                    padding: 3px 8px;
+                                    background: rgba(0,136,255,0.1);
+                                    border: 1px solid rgba(0,136,255,0.2);
+                                    border-radius: 4px;
+                                    font-size: 10px;
+                                    color: #60a5fa;
+                                ">${tech}</span>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Highlights -->
+                    <div style="margin-bottom:12px;">
+                        <div style="color:#7a9ab0; font-size:10px; letter-spacing:0.08em; margin-bottom:6px;">✓ HIGHLIGHTS</div>
+                        ${data.highlights.map(h => `
+                            <div style="color:#00c896; font-size:11px; margin-bottom:4px; display:flex; gap:6px;">
+                                <span>→</span><span>${h}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <!-- Suggestions -->
+                    <div>
+                        <div style="color:#7a9ab0; font-size:10px; letter-spacing:0.08em; margin-bottom:6px;">💡 SUGGESTIONS</div>
+                        ${data.suggestions.map(s => `
+                            <div style="color:#ffbd2e; font-size:11px; margin-bottom:4px; display:flex; gap:6px;">
+                                <span>→</span><span>${s}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <!-- Footer -->
+                    <div style="
+                        margin-top:12px;
+                        padding-top:10px;
+                        border-top: 1px solid rgba(255,255,255,0.05);
+                        font-size:10px;
+                        color:#4a6070;
+                        display:flex;
+                        justify-content:space-between;
+                    ">
+                        <span>Model: ${data.model}</span>
+                        <span>${data.analyzed_at}</span>
+                    </div>
+                </div>
+            `;
+        })
+        .catch(err => {
+            loadingPanel.innerHTML = `
+                <div style="color:#ff4455; font-size:12px; padding:10px;">
+                    ✗ Analysis failed: ${err}
+                </div>
+            `;
+        });
+}
 
         document.getElementById('github-username').addEventListener('keydown', function(e) {
             if (e.key === 'Enter') fetchRepos();
         });
+
+        // Auto fetch on load
+        window.onload = function() { fetchRepos(); };
     </script>
 </body>
 </html>

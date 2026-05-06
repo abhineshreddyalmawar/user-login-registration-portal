@@ -1,3 +1,4 @@
+from claude_service import analyze_repo
 from flask import Flask, render_template, redirect, url_for, request, flash, jsonify
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -186,11 +187,7 @@ def github_repos():
     if not username:
         return jsonify({'error': 'GitHub username is required'}), 400
     try:
-        loop = asyncio.ProactorEventLoop()
-        try:
-            repos = loop.run_until_complete(fetch_github_repos(username))
-        finally:
-            loop.close()
+        repos = asyncio.run(fetch_github_repos(username))
         return jsonify({'repos': repos})
     except BaseException as e:
         # Unwrap asyncio ExceptionGroup to get the real error
@@ -199,7 +196,19 @@ def github_repos():
         else:
             msg = str(e.__cause__ or e)
         return jsonify({'error': msg}), 500
+# ── Claude AI Analysis ─────────────────────────────────────
+@app.route('/analyze-repo')
+@login_required
+def analyze_repo_route():
+    repo_name   = request.args.get('name', '')
+    description = request.args.get('description', '')
+    language    = request.args.get('language', '')
 
+    if not repo_name:
+        return jsonify({'error': 'Repo name required'}), 400
+
+    result = analyze_repo(repo_name, description, language)
+    return jsonify(result)
 # ── Run ────────────────────────────────────────────────────
 if __name__ == '__main__':
     init_db()

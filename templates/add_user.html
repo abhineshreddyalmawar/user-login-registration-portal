@@ -3,48 +3,543 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AWS User Portal — Add User</title>
+    <title>NexusAI Portal — Add User</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        :root {
+            --bg: #04080f;
+            --surface: #080f1a;
+            --surface2: #0d1825;
+            --border: rgba(255,255,255,0.06);
+            --accent: #00c896;
+            --accent2: #0088ff;
+            --text: #e8f0f8;
+            --muted: #4a6070;
+            --label: #7a9ab0;
+            --danger: #ff4455;
+            --warning: #ffbd2e;
+            --success: #00c896;
+            --font-display: 'Syne', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-mono);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0,200,150,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,200,150,0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* ── NAVBAR ── */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 28px;
+            height: 56px;
+            background: rgba(4,8,15,0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-brand-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 7px;
+            background: linear-gradient(135deg, rgba(0,200,150,0.2), rgba(0,136,255,0.2));
+            border: 1px solid rgba(0,200,150,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .nav-brand-text {
+            background: linear-gradient(135deg, var(--text) 30%, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+            letter-spacing: 0.03em;
+        }
+
+        .nav-btn:hover { transform: translateY(-1px); }
+
+        .nav-btn-default {
+            background: var(--surface2);
+            color: var(--label);
+        }
+
+        .nav-btn-default:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .nav-btn-danger {
+            background: rgba(255,68,85,0.1);
+            border-color: rgba(255,68,85,0.2);
+            color: var(--danger);
+        }
+
+        .nav-btn-danger:hover {
+            background: rgba(255,68,85,0.15);
+        }
+
+        /* ── MAIN ── */
+        .main {
+            max-width: 560px;
+            margin: 48px auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+            animation: fadeUp 0.5s ease both;
+        }
+
+        /* ── PAGE HEADER ── */
+        .page-header {
+            margin-bottom: 28px;
+        }
+
+        .page-breadcrumb {
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .page-breadcrumb span {
+            color: var(--accent);
+        }
+
+        .page-title {
+            font-family: var(--font-display);
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--text) 40%, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 6px;
+        }
+
+        .page-subtitle {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        /* ── ALERTS ── */
+        .alert {
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .alert-success {
+            background: rgba(0,200,150,0.08);
+            border: 1px solid rgba(0,200,150,0.2);
+            color: var(--success);
+        }
+
+        .alert-error {
+            background: rgba(255,68,85,0.08);
+            border: 1px solid rgba(255,68,85,0.2);
+            color: var(--danger);
+        }
+
+        /* ── FORM CARD ── */
+        .form-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .form-card-header {
+            padding: 16px 24px;
+            background: var(--surface2);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-card-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(0,200,150,0.1);
+            border: 1px solid rgba(0,200,150,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+        }
+
+        .form-card-title {
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .form-card-badge {
+            margin-left: auto;
+            padding: 3px 10px;
+            background: rgba(0,200,150,0.08);
+            border: 1px solid rgba(0,200,150,0.15);
+            border-radius: 10px;
+            font-size: 10px;
+            color: var(--accent);
+            letter-spacing: 0.06em;
+        }
+
+        .form-card-body {
+            padding: 24px;
+        }
+
+        /* ── FORM ELEMENTS ── */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--label);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .form-label::before {
+            content: '>';
+            color: var(--accent);
+            font-size: 10px;
+        }
+
+        .form-label .required {
+            color: var(--danger);
+            font-size: 10px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 11px 14px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-family: var(--font-mono);
+            font-size: 13px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .form-input::placeholder {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent);
+            background: rgba(0,200,150,0.02);
+            box-shadow: 0 0 0 3px rgba(0,200,150,0.06);
+        }
+
+        /* Role selector */
+        .role-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .role-option {
+            position: relative;
+        }
+
+        .role-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .role-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 14px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .role-label:hover {
+            border-color: rgba(0,200,150,0.2);
+        }
+
+        .role-option input:checked + .role-label {
+            border-color: var(--accent);
+            background: rgba(0,200,150,0.05);
+            box-shadow: 0 0 0 3px rgba(0,200,150,0.06);
+        }
+
+        .role-icon { font-size: 20px; }
+
+        .role-name {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text);
+            letter-spacing: 0.05em;
+        }
+
+        .role-desc {
+            font-size: 10px;
+            color: var(--muted);
+        }
+
+        /* ── DIVIDER ── */
+        .form-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 20px 0;
+        }
+
+        /* ── SUBMIT ── */
+        .btn-submit {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border: none;
+            border-radius: 6px;
+            color: #04080f;
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(0,200,150,0.25);
+        }
+
+        .btn-submit:active { transform: translateY(0); }
+
+        /* ── INFO BOX ── */
+        .info-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 14px;
+            background: rgba(0,136,255,0.05);
+            border: 1px solid rgba(0,136,255,0.12);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 11px;
+            color: var(--label);
+            line-height: 1.6;
+        }
+
+        .info-icon {
+            color: var(--accent2);
+            font-size: 13px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+    </style>
 </head>
 <body>
+
+    <!-- NAVBAR -->
     <nav class="navbar">
-        <div class="nav-brand">☁️ AWS User Portal</div>
+        <div class="nav-brand">
+            <div class="nav-brand-icon">⚡</div>
+            <span class="nav-brand-text">NexusAI Portal</span>
+        </div>
         <div class="nav-links">
-            <a href="{{ url_for('dashboard') }}" class="btn btn-small">← Dashboard</a>
-            <a href="{{ url_for('logout') }}" class="btn btn-small btn-danger">Logout</a>
+            <a href="{{ url_for('dashboard') }}" class="nav-btn nav-btn-default">← Dashboard</a>
+            <a href="{{ url_for('logout') }}" class="nav-btn nav-btn-danger">Logout</a>
         </div>
     </nav>
 
     <div class="main">
 
+        <!-- PAGE HEADER -->
+        <div class="page-header">
+            <div class="page-breadcrumb">
+                Dashboard <span>/</span> User Management <span>/</span> Add User
+            </div>
+            <div class="page-title">Add New User</div>
+            <div class="page-subtitle">
+                New user will be saved to the database immediately and can login right away.
+            </div>
+        </div>
+
+        <!-- ALERTS -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">{{ message }}</div>
+                <div class="alert alert-{{ category }}">
+                    <span>{{ '✓' if category == 'success' else '✗' }}</span>
+                    {{ message }}
+                </div>
             {% endfor %}
         {% endwith %}
 
-        <div class="card-inner">
-            <h2>Add New User</h2>
-            <p class="subtitle">New user will be saved to the database immediately.</p>
+        <!-- FORM CARD -->
+        <div class="form-card">
+            <div class="form-card-header">
+                <div class="form-card-icon">👤</div>
+                <div class="form-card-title">User Registration</div>
+                <div class="form-card-badge">ADMIN ONLY</div>
+            </div>
 
-            <form method="POST">
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" name="username" placeholder="Enter username" required>
+            <div class="form-card-body">
+
+                <div class="info-box">
+                    <span class="info-icon">ℹ</span>
+                    <span>
+                        Users added here will have immediate access to the NexusAI Portal.
+                        Choose the role carefully — Admin users have full system access.
+                    </span>
                 </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" name="password" placeholder="Enter password" required>
-                </div>
-                <div class="form-group">
-                    <label>Role</label>
-                    <select name="role">
-                        <option value="user">User</option>
-                        <option value="admin">Admin</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-primary">Add User →</button>
-            </form>
+
+                <form method="POST">
+                    <div class="form-group">
+                        <div class="form-label">
+                            Username <span class="required">*</span>
+                        </div>
+                        <input class="form-input"
+                               type="text"
+                               name="username"
+                               placeholder="enter_username"
+                               required
+                               autocomplete="off">
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-label">
+                            Password <span class="required">*</span>
+                        </div>
+                        <input class="form-input"
+                               type="password"
+                               name="password"
+                               placeholder="••••••••"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-label">Select Role</div>
+                        <div class="role-selector">
+                            <div class="role-option">
+                                <input type="radio"
+                                       name="role"
+                                       id="role-user"
+                                       value="user"
+                                       checked>
+                                <label class="role-label" for="role-user">
+                                    <span class="role-icon">👤</span>
+                                    <span class="role-name">USER</span>
+                                    <span class="role-desc">Standard access</span>
+                                </label>
+                            </div>
+                            <div class="role-option">
+                                <input type="radio"
+                                       name="role"
+                                       id="role-admin"
+                                       value="admin">
+                                <label class="role-label" for="role-admin">
+                                    <span class="role-icon">⚡</span>
+                                    <span class="role-name">ADMIN</span>
+                                    <span class="role-desc">Full system access</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-divider"></div>
+
+                    <button type="submit" class="btn-submit">
+                        CREATE USER →
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </body>
