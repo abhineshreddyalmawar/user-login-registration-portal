@@ -1,3 +1,4 @@
+from email_service import send_email
 from claude_service import analyze_repo
 from flask import Flask, render_template, redirect, url_for, request, flash, jsonify
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
@@ -209,6 +210,27 @@ def analyze_repo_route():
 
     result = analyze_repo(repo_name, description, language)
     return jsonify(result)
+# ── Send Report ────────────────────────────────────────────
+@app.route('/send-report', methods=['POST'])
+@login_required
+def send_report():
+    data = request.get_json()
+    email = data.get('email')
+    subject = data.get('subject')
+    analysis_data = data.get('analysis_data', {})
+
+    if not email:
+        return jsonify({'success': False, 
+                       'error': 'Email required'}), 400
+
+    success, message = send_email(email, subject, analysis_data)
+
+    if success:
+        return jsonify({'success': True, 
+                       'message': message})
+    else:
+        return jsonify({'success': False, 
+                       'error': message}), 500
 # ── Run ────────────────────────────────────────────────────
 if __name__ == '__main__':
     init_db()
