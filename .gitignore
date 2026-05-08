@@ -9,3 +9,4 @@ database.db
 dist/
 build/
 .DS_Store
+claude_service_mock.py

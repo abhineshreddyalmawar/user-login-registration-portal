@@ -26,7 +26,7 @@ def get_instance_ip():
 
 # ── App Setup ──────────────────────────────────────────────
 app = Flask(__name__)
-app.secret_key = 'aws-portal-secret-2026'
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'fallback-secret-2026')
 
 # ── Login Manager Setup ────────────────────────────────────
 login_manager = LoginManager()
